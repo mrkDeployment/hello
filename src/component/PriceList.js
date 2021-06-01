@@ -179,7 +179,8 @@ class List extends React.Component {
         audio.play(); 
 
         let allowed_price = (this.state.tether)*0.985*this.state[`binance_price${j}`]
-        let amount=10000000/allowed_price
+        let quantity= window.localStorage.getItem('quantity')
+        let amount=quantity/allowed_price
 
         let NobitexToken= window.localStorage.getItem('NobitexToken');
 
@@ -238,32 +239,13 @@ class List extends React.Component {
     window.localStorage.setItem('NobitexToken',this.state.NobitexToken)
   }
 
-  async Buy() {
+  handleChange1 = (e) => {
+    this.setState({ 'quantity': e.target.value })
+    { e.target.value === '' && this.setState({ 'quantity': null})}
+  }
 
-    let NobitexToken= window.localStorage.getItem('NobitexToken');
-
-    let allowed_price = 300000
-    let amount=10000000/allowed_price
-
-    let buy_data = {
-      type: "buy",
-      srcCurrency: "btc",
-      dstCurrency: "rls",
-      amount: String(amount),
-      price: String(allowed_price)
-    }
-
-    let config = {
-      headers: { Authorization: `token ${NobitexToken}` }
-    };
-
-    await axios.post('https://api.nobitex.ir/market/orders/add', buy_data,config)
-    .then((response) => {
-      console.log('buy',response)
-    })
-    .catch((error) => {
-      console.log('erroppppppp',error)
-    })
+  handleClickButton1 = () => {
+    window.localStorage.setItem('quantity',this.state.quantity)
   }
 
   render(){
@@ -279,10 +261,17 @@ class List extends React.Component {
           <button
             onClick={(e) => this.handleClickButton(e)}
           >send</button>
+        </div>
 
+        <div>
+          <p>مقدار خرید به ریال</p>
+          <input
+            placeholder="مقدار خرید به ریال"
+            onChange={(e) => this.handleChange1(e)}
+          />
           <button
-            onClick={(e) => this.Buy(e)}
-          >Buy</button>
+            onClick={(e) => this.handleClickButton1(e)}
+          >send</button>
         </div>
       </div>
     );
