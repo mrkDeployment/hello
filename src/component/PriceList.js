@@ -168,9 +168,11 @@ class List extends React.Component {
       //   // }
         
       // }
+      let buyPercent=window.localStorage.getItem('buyPercent')
 
-      if(Math.abs((this.state[`max${j}`]-this.state[`min${j}`])/this.state[`min${j}`]*100)>2.4 && this.state[`binance_price${j}`] > this.state[`nobitex_price${j}`]){
-        console.log("nobitex",(this.state.tether)*0.985*this.state[`binance_price${j}`])
+      if(Math.abs((this.state[`max${j}`]-this.state[`min${j}`])/this.state[`min${j}`]*100)>buyPercent && this.state[`binance_price${j}`] > this.state[`nobitex_price${j}`] && buyPercent){
+        console.log('buyyyyyyyyyyyyyyy')
+        console.log("nobitex",(this.state.tether)*0.9875*this.state[`binance_price${j}`])
         console.log("maxxxx",this.state[`max${j}`],this.state[`name_max${j}`])
         console.log("minnnn",this.state[`min${j}`],this.state[`name_min${j}`])
         // console.log("nobitex",  this.state.binance_price,this.state.nobitex_volume)
@@ -178,7 +180,7 @@ class List extends React.Component {
         console.log("taghir",(this.state[`max${j}`]-this.state[`min${j}`])/this.state[`min${j}`]*100,now) 
         audio.play(); 
 
-        let allowed_price = (this.state.tether)*0.985*this.state[`binance_price${j}`]
+        let allowed_price = (this.state.tether)*0.9875*this.state[`binance_price${j}`]
         let quantity= window.localStorage.getItem('quantity')
         let amount=quantity/allowed_price
 
@@ -198,23 +200,53 @@ class List extends React.Component {
     
         await axios.post('https://api.nobitex.ir/market/orders/add', buy_data,config)
         .then((response) => {
-          console.log('buy',response)
+          console.log('buyyyyyyyy',response)
         })
         .catch((error) => {
           console.log('erroppppppp',error)
         })
       }
       
+      let sellPercent=window.localStorage.getItem('sellPercent')
 
-      // if(Math.abs((this.state[`max${j}`]-this.state[`min${j}`])/this.state[`min${j}`]*100)>1.2 && this.state[`binance_price${j}`] < this.state[`nobitex_price${j}`]){
-      //   console.log("maxxxx",this.state[`max${j}`],this.state[`name_max${j}`])
-      //   console.log("minnnn",this.state[`min${j}`],this.state[`name_min${j}`])
-      //   console.log("nobitex",this.state[`binance_price${j}`])
-      //   // console.log("nobitex",  this.state.binance_price,this.state.nobitex_volume)
-      //   var now = new Date();
-      //   console.log("taghir",(this.state[`max${j}`]-this.state[`min${j}`])/this.state[`min${j}`]*100,now) 
-      //   audio.play(); 
-      // }
+      if(Math.abs((this.state[`max${j}`]-this.state[`min${j}`])/this.state[`min${j}`]*100)>sellPercent && this.state[`binance_price${j}`] < this.state[`nobitex_price${j}`]
+      && sellPercent){
+        console.log('sellllllllllll')
+        console.log("maxxxx",this.state[`max${j}`],this.state[`name_max${j}`])
+        console.log("minnnn",this.state[`min${j}`],this.state[`name_min${j}`])
+        console.log("nobitex",this.state[`binance_price${j}`])
+        // console.log("nobitex",  this.state.binance_price,this.state.nobitex_volume)
+        var now = new Date();
+        console.log("taghir",(this.state[`max${j}`]-this.state[`min${j}`])/this.state[`min${j}`]*100,now) 
+      
+        let allowed_price = (this.state.tether)*1.0125*this.state[`binance_price${j}`]
+        let quantity= window.localStorage.getItem('quantity')
+        let amount=quantity/allowed_price
+
+        let NobitexToken= window.localStorage.getItem('NobitexToken');
+
+        let sell_data = {
+          type: "sell",
+          srcCurrency: coin_list[j],
+          dstCurrency: "rls",
+          amount: String(amount),
+          price: String(allowed_price)
+        }
+    
+        let config = {
+          headers: { Authorization: `token ${NobitexToken}` }
+        };
+    
+        await axios.post('https://api.nobitex.ir/market/orders/add', sell_data,config)
+        .then((response) => {
+          console.log('selllllllll',response)
+          audio.play(); 
+        })
+        .catch((error) => {
+          console.log('erroppppppp',error)
+        })
+
+      }
 
       // if(this.state[`nobitex_price${0}`]*(this.state.tether)<91650){
       //   console.log(this.state[`nobitex_price${0}`]*(this.state.tether))
@@ -244,8 +276,26 @@ class List extends React.Component {
     { e.target.value === '' && this.setState({ 'quantity': null})}
   }
 
+  handleChange2 = (e) => {
+    this.setState({ 'buyPercent': e.target.value })
+    { e.target.value === '' && this.setState({ 'buyPercent': null})}
+  }
+
+  handleChange3 = (e) => {
+    this.setState({ 'sellPercent': e.target.value })
+    { e.target.value === '' && this.setState({ 'sellPercent': null})}
+  }
+
   handleClickButton1 = () => {
     window.localStorage.setItem('quantity',this.state.quantity)
+  }
+
+  handleClickButton2 = () => {
+    window.localStorage.setItem('buyPercent',this.state.buyPercent)
+  }
+
+  handleClickButton3 = () => {
+    window.localStorage.setItem('sellPercent',this.state.sellPercent)
   }
 
   render(){
@@ -273,6 +323,27 @@ class List extends React.Component {
             onClick={(e) => this.handleClickButton1(e)}
           >send</button>
         </div>
+
+        <div>
+          <p>درصد برای خرید</p>
+          <input
+            onChange={(e) => this.handleChange2(e)}
+          />
+          <button
+            onClick={(e) => this.handleClickButton2(e)}
+          >send</button>
+        </div>
+
+        <div>
+          <p>درصد برای فروش</p>
+          <input
+            onChange={(e) => this.handleChange3(e)}
+          />
+          <button
+            onClick={(e) => this.handleClickButton3(e)}
+          >send</button>
+        </div>
+
       </div>
     );
   }
