@@ -17,15 +17,11 @@ class List extends React.Component {
 
   async handleMax(){
 
-    let data100 = {
-      symbol: "USDTIRT"
-    }
-
     var audio = new Audio('https://media.geeksforgeeks.org/wp-content/uploads/20190531135120/beep.mp3');
 
-    axios.post('https://api.nobitex.ir/v2/trades', data100,{})
+    axios.get('https://corsproxyy.herokuapp.com/https://api.nobitex.ir/v2/orderbook/USDTIRT')
     .then((response) => {
-      this.setState({ tether: Number.parseFloat(response.data.trades[0].price, 10) })
+      this.setState({ tether: Number.parseFloat(response.data.bids[0][0], 10) })
     })
     .catch((error) => {
       console.log('erroppppppp')
@@ -91,18 +87,53 @@ class List extends React.Component {
     for (let i = 1; i < nobitex_coin_list.length+1; i++) {
 
       var j = i-1;
-      window["data"+j] = {
-        symbol: nobitex_coin_list[i-1]
-      }
+      // window["data"+j] = {
+      //   symbol: nobitex_coin_list[i-1]
+      // }
 
 
       // nobitex API
 
-      await axios.post('https://api.nobitex.ir/v2/trades', window["data"+j],{})
+      await axios.get('https://corsproxyy.herokuapp.com/https://api.nobitex.ir/v2/orderbook/' + nobitex_coin_list[i-1])
       .then((response) => {
-        var price= Number.parseFloat(response.data.trades[0].price, 10)/this.state.tether
+        // var price= Number.parseFloat(response.data.bids[0][0], 10)/this.state.tether
+        let price_sum_bid=0;
+        let price_sum_ask=0;
+        let quantity= window.localStorage.getItem('quantity');
+        for (let k = 0; k < 16; k++) {
+          // if (i === 3) { break; }
+          price_sum_bid += Number.parseFloat(response.data.bids[i][0], 10)*Number.parseFloat(response.data.bids[i][1], 10)
+          
+          if (quantity*3 < price_sum_bid){
+            let price_bid = Number.parseFloat(response.data.bids[i][0], 10)
+            this.setState({ [`nobitex_price_bid${j}`]: price_bid })
+            break;
+          }else{
+            if (k==15){
+              let price_bid = Number.parseFloat(response.data.bids[15][0], 10)*1.03
+              this.setState({ [`nobitex_price_bid${j}`]: price_bid })
+            }
+          }
+        }
+
+        for (let k = 0; k < 16; k++) {
+
+          price_sum_ask += Number.parseFloat(response.data.asks[i][0], 10)*Number.parseFloat(response.data.asks[i][1], 10)
+          
+          if (quantity*3 < price_sum_bid){
+            let price_ask = Number.parseFloat(response.data.asks[i][0], 10)
+            this.setState({ [`nobitex_price_ask${j}`]: price_ask })
+            break;
+          }else{
+            if (k==15){
+              let price_ask = Number.parseFloat(response.data.asks[15][0], 10)*1.03
+              this.setState({ [`nobitex_price_ask${j}`]: price_ask })
+            }
+          }
+        }
+
         // this.setState({nobitex_volume2: response.data.trades[0].volume})
-        this.setState({ [`nobitex_price${j}`]: price })
+        // this.setState({ [`nobitex_price${j}`]: price })
       })
       .catch((error) => {
         console.log('erroppppppp')
@@ -121,17 +152,17 @@ class List extends React.Component {
         console.log(error);
       });
 
-      if(this.state[`binance_price${j}`]>=this.state[`nobitex_price${j}`]){
-        this.setState({ [`min${j}`]: this.state[`binance_price${j}`] })
-        this.setState({ [`name_min${j}`]: binance_coin_list[j] })
-        this.setState({ [`max${j}`]: this.state[`nobitex_price${j}`] })
-        this.setState({ [`name_max${j}`]: nobitex_coin_list[j] })
-      }else{
-        this.setState({ [`max${j}`]: this.state[`binance_price${j}`] })
-        this.setState({ [`name_max${j}`]: binance_coin_list[j] })
-        this.setState({ [`min${j}`]: this.state[`nobitex_price${j}`] })
-        this.setState({ [`name_min${j}`]: nobitex_coin_list[j] })
-      }
+      // if(this.state[`binance_price${j}`]>=this.state[`nobitex_price${j}`]){
+      //   this.setState({ [`min${j}`]: this.state[`binance_price${j}`] })
+      //   this.setState({ [`name_min${j}`]: binance_coin_list[j] })
+      //   this.setState({ [`max${j}`]: this.state[`nobitex_price${j}`] })
+      //   this.setState({ [`name_max${j}`]: nobitex_coin_list[j] })
+      // }else{
+      //   this.setState({ [`max${j}`]: this.state[`binance_price${j}`] })
+      //   this.setState({ [`name_max${j}`]: binance_coin_list[j] })
+      //   this.setState({ [`min${j}`]: this.state[`nobitex_price${j}`] })
+      //   this.setState({ [`name_min${j}`]: nobitex_coin_list[j] })
+      // }
 
       //exir API
       // if(j<7){
@@ -168,16 +199,18 @@ class List extends React.Component {
       //   // }
         
       // }
+
+
       let buyPercent=window.localStorage.getItem('buyPercent')
 
-      if(Math.abs((this.state[`max${j}`]-this.state[`min${j}`])/this.state[`min${j}`]*100)>buyPercent && this.state[`binance_price${j}`] > this.state[`nobitex_price${j}`] && buyPercent){
+      if(Math.abs((this.state[`nobitex_price_bid${j}`]-this.state[`binance_price${j}`])/this.state[`binance_price${j}`]*100)>buyPercent && this.state[`binance_price${j}`] > this.state[`nobitex_price_bid${j}`] && buyPercent){
         console.log('buyyyyyyyyyyyyyyy')
         console.log("nobitex",(this.state.tether)*0.9875*this.state[`binance_price${j}`])
-        console.log("maxxxx",this.state[`max${j}`],this.state[`name_max${j}`])
-        console.log("minnnn",this.state[`min${j}`],this.state[`name_min${j}`])
+        console.log("maxxxx",this.state[`nobitex_price_bid${j}`],binance_coin_list[j])
+        console.log("minnnn",this.state[`binance_price${j}`],binance_coin_list[j])
         // console.log("nobitex",  this.state.binance_price,this.state.nobitex_volume)
         var now = new Date();
-        console.log("taghir",(this.state[`max${j}`]-this.state[`min${j}`])/this.state[`min${j}`]*100,now) 
+        console.log("taghir",(this.state[`nobitex_price_bid${j}`]-this.state[`binance_price${j}`])/this.state[`binance_price${j}`]*100,now) 
         audio.play(); 
 
         let allowed_price = (this.state.tether)*0.9875*this.state[`binance_price${j}`]
@@ -198,7 +231,7 @@ class List extends React.Component {
           headers: { Authorization: `token ${NobitexToken}` }
         };
     
-        await axios.post('https://api.nobitex.ir/market/orders/add', buy_data,config)
+        await axios.post('https://corsproxyy.herokuapp.com/https://api.nobitex.ir/market/orders/add', buy_data,config)
         .then((response) => {
           console.log('buyyyyyyyy',response)
         })
@@ -209,15 +242,16 @@ class List extends React.Component {
       
       let sellPercent=window.localStorage.getItem('sellPercent')
 
-      if(Math.abs((this.state[`max${j}`]-this.state[`min${j}`])/this.state[`min${j}`]*100)>sellPercent && this.state[`binance_price${j}`] < this.state[`nobitex_price${j}`]
-      && sellPercent){
+      if(Math.abs((this.state[`nobitex_price_ask${j}`]-this.state[`binance_price${j}`])/this.state[`binance_price${j}`]*100)>sellPercent && this.state[`binance_price${j}`] < this.state[`nobitex_price_ask${j}`]
+        && sellPercent){
+          
         console.log('sellllllllllll')
-        console.log("maxxxx",this.state[`max${j}`],this.state[`name_max${j}`])
-        console.log("minnnn",this.state[`min${j}`],this.state[`name_min${j}`])
+        console.log("maxxxx",this.state[`nobitex_price_ask${j}`],this.state[`binance_price${j}`])
+        console.log("minnnn",this.state[`binance_price${j}`],binance_coin_list[j])
         console.log("nobitex",this.state[`binance_price${j}`])
         // console.log("nobitex",  this.state.binance_price,this.state.nobitex_volume)
         var now = new Date();
-        console.log("taghir",(this.state[`max${j}`]-this.state[`min${j}`])/this.state[`min${j}`]*100,now) 
+        console.log("taghir",(this.state[`nobitex_price_ask${j}`]-this.state[`binance_price${j}`])/this.state[`binance_price${j}`]*100,now) 
       
         let allowed_price = (this.state.tether)*1.0125*this.state[`binance_price${j}`]
         let quantity= window.localStorage.getItem('quantity')
@@ -237,7 +271,7 @@ class List extends React.Component {
           headers: { Authorization: `token ${NobitexToken}` }
         };
     
-        await axios.post('https://api.nobitex.ir/market/orders/add', sell_data,config)
+        await axios.post('https://corsproxyy.herokuapp.com/https://api.nobitex.ir/market/orders/add', sell_data,config)
         .then((response) => {
           console.log('selllllllll',response)
           audio.play(); 
