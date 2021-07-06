@@ -132,7 +132,6 @@ class List extends React.Component {
           }
         }
 
-        console.log("binance",this.state[`binance_price${j}`],"nobitex",this.state[`nobitex_price_bid${j}`])
         // this.setState({nobitex_volume2: response.data.trades[0].volume})
         // this.setState({ [`nobitex_price${j}`]: price })
       })
@@ -224,10 +223,10 @@ class List extends React.Component {
 
         let buy_data = {
           type: "buy",
+          execution: "market",
           srcCurrency: coin_list[j],
           dstCurrency: "rls",
           amount: String(amount),
-          price: String(allowed_price)
         }
     
         let config = {
@@ -264,10 +263,10 @@ class List extends React.Component {
 
         let sell_data = {
           type: "sell",
+          execution: "market",
           srcCurrency: coin_list[j],
           dstCurrency: "rls",
           amount: String(amount),
-          price: String(allowed_price)
         }
     
         let config = {
