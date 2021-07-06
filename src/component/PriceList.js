@@ -105,12 +105,12 @@ class List extends React.Component {
           price_sum_bid += Number.parseFloat(response.data.bids[i][0], 10)*Number.parseFloat(response.data.bids[i][1], 10)
           
           if (quantity*3 < price_sum_bid){
-            let price_bid = Number.parseFloat(response.data.bids[i][0], 10)
+            let price_bid = Number.parseFloat(response.data.bids[i][0], 10)/this.state.tether
             this.setState({ [`nobitex_price_bid${j}`]: price_bid })
             break;
           }else{
             if (k==15){
-              let price_bid = Number.parseFloat(response.data.bids[15][0], 10)*1.03
+              let price_bid = Number.parseFloat(response.data.bids[15][0], 10)*1.03/this.state.tether
               this.setState({ [`nobitex_price_bid${j}`]: price_bid })
             }
           }
@@ -121,17 +121,18 @@ class List extends React.Component {
           price_sum_ask += Number.parseFloat(response.data.asks[i][0], 10)*Number.parseFloat(response.data.asks[i][1], 10)
           
           if (quantity*3 < price_sum_bid){
-            let price_ask = Number.parseFloat(response.data.asks[i][0], 10)
+            let price_ask = Number.parseFloat(response.data.asks[i][0], 10)/this.state.tether
             this.setState({ [`nobitex_price_ask${j}`]: price_ask })
             break;
           }else{
             if (k==15){
-              let price_ask = Number.parseFloat(response.data.asks[15][0], 10)*1.03
+              let price_ask = Number.parseFloat(response.data.asks[15][0], 10)*1.03/this.state.tether
               this.setState({ [`nobitex_price_ask${j}`]: price_ask })
             }
           }
         }
 
+        console.log("binance",this.state[`binance_price${j}`],"nobitex",this.state[`nobitex_price_bid${j}`])
         // this.setState({nobitex_volume2: response.data.trades[0].volume})
         // this.setState({ [`nobitex_price${j}`]: price })
       })
@@ -203,7 +204,9 @@ class List extends React.Component {
 
       let buyPercent=window.localStorage.getItem('buyPercent')
 
-      if(Math.abs((this.state[`nobitex_price_bid${j}`]-this.state[`binance_price${j}`])/this.state[`binance_price${j}`]*100)>buyPercent && this.state[`binance_price${j}`] > this.state[`nobitex_price_bid${j}`] && buyPercent){
+      if(Math.abs((this.state[`nobitex_price_bid${j}`]-this.state[`binance_price${j}`])/this.state[`binance_price${j}`]*100)>buyPercent 
+      && this.state[`binance_price${j}`] > this.state[`nobitex_price_bid${j}`] && buyPercent){
+
         console.log('buyyyyyyyyyyyyyyy')
         console.log("nobitex",(this.state.tether)*0.9875*this.state[`binance_price${j}`])
         console.log("maxxxx",this.state[`nobitex_price_bid${j}`],binance_coin_list[j])
