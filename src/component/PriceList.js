@@ -39,6 +39,7 @@ class List extends React.Component {
       "bnb",
       "eos",
       "xrp",
+      "uni",
     ]
 
     let nobitex_coin_list = [
@@ -53,6 +54,7 @@ class List extends React.Component {
       "BNBIRT",
       "EOSIRT",
       "XRPIRT",
+      "UNIIRT",
     ]
 
     let binance_coin_list = [
@@ -67,6 +69,7 @@ class List extends React.Component {
       "BNBUSDT",
       "EOSUSDT",
       "XRPUSDT",
+      "UNIUSDT",
     ]
 
     let exir_coin_list = [
