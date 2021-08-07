@@ -40,6 +40,7 @@ class List extends React.Component {
       "eos",
       "xrp",
       "uni",
+      "link",
     ]
 
     let nobitex_coin_list = [
@@ -55,6 +56,7 @@ class List extends React.Component {
       "EOSIRT",
       "XRPIRT",
       "UNIIRT",
+      "LINKIRT",
     ]
 
     let binance_coin_list = [
@@ -70,6 +72,7 @@ class List extends React.Component {
       "EOSUSDT",
       "XRPUSDT",
       "UNIUSDT",
+      "LINKIRT",
     ]
 
     let exir_coin_list = [
@@ -148,7 +151,6 @@ class List extends React.Component {
       })
       .then(response => {
         var price= Number.parseFloat(response.data.price, 10)
-        console.log('aaaaaaaa')
         this.setState({ [`binance_price${j}`]: price })
       })
       .catch(error => {
