@@ -72,7 +72,7 @@ class List extends React.Component {
       "EOSUSDT",
       "XRPUSDT",
       "UNIUSDT",
-      "LINKIRT",
+      "LINKUSDT",
     ]
 
     let exir_coin_list = [
