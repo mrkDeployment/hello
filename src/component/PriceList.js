@@ -12,8 +12,17 @@ class List extends React.Component {
   componentDidMount () {
     this.interval = setInterval(() => {
       this.handleMax()
-    }, 3000)
+    }, 5000)
+
+    this.interval = setInterval(() => {
+      this.refresh()
+    }, 5400000)
+
     }
+
+  refresh(){
+    window.location.reload(false);
+  };
 
   async handleMax(){
 
@@ -151,6 +160,7 @@ class List extends React.Component {
       })
       .then(response => {
         var price= Number.parseFloat(response.data.price, 10)
+        console.log("aaaaaaaa")
         this.setState({ [`binance_price${j}`]: price })
       })
       .catch(error => {
