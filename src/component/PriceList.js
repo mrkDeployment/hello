@@ -16,7 +16,7 @@ class List extends React.Component {
 
     this.interval = setInterval(() => {
       this.refresh()
-    }, 5400000)
+    }, 1800000)
 
     }
 
@@ -135,13 +135,13 @@ class List extends React.Component {
 
           price_sum_ask += Number.parseFloat(response.data.asks[i][0], 10)*Number.parseFloat(response.data.asks[i][1], 10)
           
-          if (quantity*3 < price_sum_bid){
+          if (quantity*3 < price_sum_ask){
             let price_ask = Number.parseFloat(response.data.asks[i][0], 10)/this.state.tether
             this.setState({ [`nobitex_price_ask${j}`]: price_ask })
             break;
           }else{
             if (k==15){
-              let price_ask = Number.parseFloat(response.data.asks[15][0], 10)*1.03/this.state.tether
+              let price_ask = Number.parseFloat(response.data.asks[15][0], 10)*0.97/this.state.tether
               this.setState({ [`nobitex_price_ask${j}`]: price_ask })
             }
           }
