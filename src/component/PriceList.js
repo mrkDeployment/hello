@@ -1,6 +1,7 @@
 import React from 'react';
 import '../App.css';
 import axios from 'axios'
+import {sleep} from './commonfunctions'
 
 class List extends React.Component {
   constructor(props){
@@ -12,7 +13,7 @@ class List extends React.Component {
   componentDidMount () {
     this.interval = setInterval(() => {
       this.handleMax()
-    }, 5000)
+    }, 4000)
 
     this.interval = setInterval(() => {
       this.refresh()
@@ -33,13 +34,14 @@ class List extends React.Component {
       this.setState({ tether: Number.parseFloat(response.data.bids[0][0], 10) })
     })
     .catch((error) => {
-      console.log('erroppppppp')
+      console.log('erroppppppp'+"tether request error",error)
     })
 
     let coin_list = [
       "btc",
       "eth",
       "ltc",
+      "shib",
       "bch",
       "xlm",
       "trx",
@@ -50,28 +52,38 @@ class List extends React.Component {
       "xrp",
       "uni",
       "link",
+      "dot",
+      "aave",
+      "ada"      
     ]
 
+    // [Namad, zarib nobitex/binance]
+
     let nobitex_coin_list = [
-      "BTCIRT",
-      "ETHIRT",
-      "LTCIRT",
-      "BCHIRT",
-      "XLMIRT",
-      "TRXIRT",
-      "DOGEIRT",
-      "ETCIRT",
-      "BNBIRT",
-      "EOSIRT",
-      "XRPIRT",
-      "UNIIRT",
-      "LINKIRT",
+      ["BTCIRT",1],
+      ["ETHIRT",1],
+      ["LTCIRT",1],
+      ["SHIBIRT",1000],
+      ["BCHIRT",1],
+      ["XLMIRT",1],
+      ["TRXIRT",1],
+      ["DOGEIRT",1],
+      ["ETCIRT",1],
+      ["BNBIRT",1],
+      ["EOSIRT",1],
+      ["XRPIRT",1],
+      ["UNIIRT",1],
+      ["LINKIRT",1],
+      ["DOTIRT",1],
+      ["AAVEIRT",1],
+      ["ADAIRT",1]
     ]
 
     let binance_coin_list = [
       "BTCUSDT",
       "ETHUSDT",
       "LTCUSDT",
+      "SHIBUSDT",
       "BCHUSDT",
       "XLMUSDT",
       "TRXUSDT",
@@ -82,6 +94,9 @@ class List extends React.Component {
       "XRPUSDT",
       "UNIUSDT",
       "LINKUSDT",
+      "DOTUSDT",
+      "AAVEUSDT",
+      "ADAUSDT"
     ]
 
     let exir_coin_list = [
@@ -109,7 +124,7 @@ class List extends React.Component {
 
       // nobitex API
 
-      await axios.get('https://corsproxyy.herokuapp.com/https://api.nobitex.ir/v2/orderbook/' + nobitex_coin_list[i-1])
+      await axios.get('https://corsproxyy.herokuapp.com/https://api.nobitex.ir/v2/orderbook/' + nobitex_coin_list[i-1][0])
       .then((response) => {
         // var price= Number.parseFloat(response.data.bids[0][0], 10)/this.state.tether
         let price_sum_bid=0;
@@ -117,32 +132,32 @@ class List extends React.Component {
         let quantity= window.localStorage.getItem('quantity');
         for (let k = 0; k < 16; k++) {
           // if (i === 3) { break; }
-          price_sum_bid += Number.parseFloat(response.data.bids[i][0], 10)*Number.parseFloat(response.data.bids[i][1], 10)
+          price_sum_bid += Number.parseFloat(response.data.bids[k][0], 10)*Number.parseFloat(response.data.bids[k][1], 10)
           
           if (quantity*3 < price_sum_bid){
-            let price_bid = Number.parseFloat(response.data.bids[i][0], 10)/this.state.tether
-            this.setState({ [`nobitex_price_bid${j}`]: price_bid })
+            let price_bid = Number.parseFloat(response.data.bids[k][0], 10)/this.state.tether
+            this.setState({ [`nobitex_price_bid${j}`]: price_bid/nobitex_coin_list[j][1] })
             break;
           }else{
             if (k==15){
               let price_bid = Number.parseFloat(response.data.bids[15][0], 10)*1.03/this.state.tether
-              this.setState({ [`nobitex_price_bid${j}`]: price_bid })
+              this.setState({ [`nobitex_price_bid${j}`]: price_bid/nobitex_coin_list[j][1] })
             }
           }
         }
 
         for (let k = 0; k < 16; k++) {
 
-          price_sum_ask += Number.parseFloat(response.data.asks[i][0], 10)*Number.parseFloat(response.data.asks[i][1], 10)
+          price_sum_ask += Number.parseFloat(response.data.asks[k][0], 10)*Number.parseFloat(response.data.asks[k][1], 10)
           
           if (quantity*3 < price_sum_ask){
-            let price_ask = Number.parseFloat(response.data.asks[i][0], 10)/this.state.tether
-            this.setState({ [`nobitex_price_ask${j}`]: price_ask })
+            let price_ask = Number.parseFloat(response.data.asks[k][0], 10)/this.state.tether
+            this.setState({ [`nobitex_price_ask${j}`]: price_ask/nobitex_coin_list[j][1] })
             break;
           }else{
             if (k==15){
               let price_ask = Number.parseFloat(response.data.asks[15][0], 10)*0.97/this.state.tether
-              this.setState({ [`nobitex_price_ask${j}`]: price_ask })
+              this.setState({ [`nobitex_price_ask${j}`]: price_ask/nobitex_coin_list[j][1] })
             }
           }
         }
@@ -151,7 +166,8 @@ class List extends React.Component {
         // this.setState({ [`nobitex_price${j}`]: price })
       })
       .catch((error) => {
-        console.log('erroppppppp')
+        console.log('erroppppppp'+"error occures while getting price of" + nobitex_coin_list[i-1][0],
+        error) 
       })
       
       //binance API
@@ -309,7 +325,9 @@ class List extends React.Component {
       //   console.log("taghir",(this.state[`max${j}`]-this.state[`min${j}`])/this.state[`min${j}`]*100,now) 
       //   audio.play(); 
       // }
-
+      var sleep_time= 4000/(1.3*nobitex_coin_list.length)
+      await sleep(sleep_time)
+      
     }
   }
 
