@@ -3,28 +3,71 @@ import '../App.css';
 import axios from 'axios'
 import {sleep} from '../functions/commonfunctions'
 import {SL} from '../functions/strategies'
+import {Balance} from '../functions/Balance'
 
 class List extends React.Component {
   constructor(props){
     super(props)
     this.state={
+      buy_sum: 0,
+      sell_sum: 0,
+      SL_sum: 0
     }
   }
 
-  componentDidMount () {
-    console.log('yyyy')
+  async componentDidMount () {
+    
+    let token=window.localStorage.getItem('NobitexToken')
+    var coin_list={}
+
+    let config = {
+      headers: { Authorization: `token ${token}` }
+    };
+    
+    let coins_data = {
+      currencies:"rls,btc,ltc,eth,shib,bch,xlm,trx,doge,etc,bnb,eos,xrp,uni,link,dot,aave,ada"
+    }
+
+    await axios.post('https://corsproxyy.herokuapp.com/https://api.nobitex.ir/users/wallets/list', coins_data, config)
+    .then((response) => {
+      
+      var coins= response.data.wallets
+      coins.forEach(function (coin) {
+              
+        if ( coin.rialBalance > 1000000 ){
+          let currency= coin.currency
+          let balance= coin.balance
+          coin_list[currency]= balance
+        }
+      });
+      
+    })
+    .catch((error) => {
+      console.error('erroppppppp',error)
+    })
+    
+    for (var coin in coin_list){
+      let coin_name= 'balance_'+ coin
+      let coin_balance= coin_list[coin]
+
+      this.setState({[coin_name]: coin_balance})
+      
+    }
+
     this.start_bot = setInterval(() => {
       this.handleMax()
     }, 4000)
 
     var reload_browser = setInterval(() => {
+
       this.refresh()
+
     }, 1800000)
 
     }
 
   refresh(){
-    window.location.reload();
+    window.location.reload(true);
   };
 
   async handleMax(){
@@ -101,28 +144,10 @@ class List extends React.Component {
       "ADAUSDT"
     ]
 
-    let exir_coin_list = [
-      "btc-irt",
-      "eth-irt",
-      "ltc-irt",
-      "bch-irt",
-      "xlm-irt",
-      "trx-irt",
-      "doge-irt",
-      // "etc-irt",
-      // "bnb-irt",
-      // "eos-irt",
-      // "xrp-irt",
-    ]
-
     
     for (let i = 1; i < nobitex_coin_list.length+1; i++) {
 
       var j = i-1;
-      // window["data"+j] = {
-      //   symbol: nobitex_coin_list[i-1]
-      // }
-
 
       // nobitex API
 
@@ -131,9 +156,9 @@ class List extends React.Component {
         // var price= Number.parseFloat(response.data.bids[0][0], 10)/this.state.tether
         let price_sum_bid=0;
         let price_sum_ask=0;
-        let quantity= window.localStorage.getItem('quantity');
+        let percentage = window.localStorage.getItem('percentage');
+        let quantity= this.state.balance_rls*0.01*percentage
         for (let k = 0; k < 16; k++) {
-          // if (i === 3) { break; }
           price_sum_bid += Number.parseFloat(response.data.bids[k][0], 10)*Number.parseFloat(response.data.bids[k][1], 10)
           
           if (quantity*3 < price_sum_bid){
@@ -164,11 +189,9 @@ class List extends React.Component {
           }
         }
 
-        // this.setState({nobitex_volume2: response.data.trades[0].volume})
-        // this.setState({ [`nobitex_price${j}`]: price })
       })
       .catch((error) => {
-        console.log('erroppppppp'+"error occures while getting price of" + nobitex_coin_list[i-1][0],
+        console.error('erroppppppp'+"error occures while getting price of" + nobitex_coin_list[i-1][0],
         error) 
       })
       
@@ -185,159 +208,129 @@ class List extends React.Component {
         console.error(error);
       });
 
-      // if(this.state[`binance_price${j}`]>=this.state[`nobitex_price${j}`]){
-      //   this.setState({ [`min${j}`]: this.state[`binance_price${j}`] })
-      //   this.setState({ [`name_min${j}`]: binance_coin_list[j] })
-      //   this.setState({ [`max${j}`]: this.state[`nobitex_price${j}`] })
-      //   this.setState({ [`name_max${j}`]: nobitex_coin_list[j] })
-      // }else{
-      //   this.setState({ [`max${j}`]: this.state[`binance_price${j}`] })
-      //   this.setState({ [`name_max${j}`]: binance_coin_list[j] })
-      //   this.setState({ [`min${j}`]: this.state[`nobitex_price${j}`] })
-      //   this.setState({ [`name_min${j}`]: nobitex_coin_list[j] })
-      // }
-
-      //exir API
-      // if(j<7){
-      //   await axios.get('https://api.exir.io/v1/trades', {
-      //   })
-      //   .then(response => {
-      //     var price= Number.parseFloat(response.data[exir_coin_list[j]][0].price, 10)/Number.parseFloat(response.data["usdt-irt"][0].price, 10)
-      //     this.setState({ [`exir_price${j}`]: price })
-      //   })
-      //   .catch(error => {
-      //     console.log('error:')
-      //   })
-
-      //   if(this.state[`binance_price${j}`]>=this.state[`exir_price${j}`]){
-      //     this.setState({ [`minn${j}`]: this.state[`binance_price${j}`] })
-      //     this.setState({ [`name_minn${j}`]: binance_coin_list[j] })
-      //     this.setState({ [`maxx${j}`]: this.state[`exir_price${j}`] })
-      //     this.setState({ [`name_maxx${j}`]: exir_coin_list[j] })
-      //   }else{
-      //     this.setState({ [`maxx${j}`]: this.state[`binance_price${j}`] })
-      //     this.setState({ [`name_maxx${j}`]: binance_coin_list[j] })
-      //     this.setState({ [`minn${j}`]: this.state[`exir_price${j}`] })
-      //     this.setState({ [`name_minn${j}`]: exir_coin_list[j] })
-      //   }
-
-      //   // if(Math.abs((this.state[`maxx${j}`]-this.state[`minn${j}`])/this.state[`minn${j}`]*100)>4 && this.state[`binance_price${j}`] > this.state[`exir_price${j}`]){
-      //   //   console.log("maxxxx",this.state[`maxx${j}`],this.state[`name_maxx${j}`])
-      //   //   console.log("minnnn",this.state[`minn${j}`],this.state[`name_minn${j}`])
-      //   //   console.log("exir",this.state[`binance_price${j}`])
-      //   //   // console.log("nobitex",  this.state.binance_price,this.state.nobitex_volume)
-      //   //   var now = new Date();
-      //   //   console.log("taghir",(th is.state[`maxx${j}`]-this.state[`minn${j}`])/this.state[`minn${j}`]*100,now) 
-      //   //   audio.play(); 
-      //   // }
-        
-      // }
-
-
       let buyPercent=window.localStorage.getItem('buyPercent')
 
-      if(Math.abs((this.state[`nobitex_price_bid${j}`]-this.state[`binance_price${j}`])/this.state[`binance_price${j}`]*100)>buyPercent 
-      && this.state[`binance_price${j}`] > this.state[`nobitex_price_bid${j}`] && buyPercent){
+      if (this.state.buy_sum<20){
 
-        console.log('buyyyyyyyyyyyyyyy')
-        console.log("nobitex",(this.state.tether)*0.9875*this.state[`binance_price${j}`])
-        console.log("maxxxx",this.state[`nobitex_price_bid${j}`],binance_coin_list[j])
-        console.log("minnnn",this.state[`binance_price${j}`],binance_coin_list[j])
-        // console.log("nobitex",  this.state.binance_price,this.state.nobitex_volume)
-        var now = new Date();
-        console.log("taghir",(this.state[`nobitex_price_bid${j}`]-this.state[`binance_price${j}`])/this.state[`binance_price${j}`]*100,now) 
-        audio.play(); 
+        if(((this.state[`binance_price${j}`]-this.state[`nobitex_price_bid${j}`])/this.state[`binance_price${j}`]*100)>buyPercent && buyPercent){
+          console.log('buyyyyyyyyyyyyyyy')
+          console.log("maxxxx",this.state[`nobitex_price_bid${j}`],binance_coin_list[j])
+          console.log("minnnn",this.state[`binance_price${j}`],binance_coin_list[j])
+          var now = new Date();
+          console.log("taghir",(this.state[`nobitex_price_bid${j}`]-this.state[`binance_price${j}`])/this.state[`binance_price${j}`]*100,now) 
+          audio.play(); 
 
-        let allowed_price = (this.state.tether)*0.9875*this.state[`binance_price${j}`]
-        let quantity= window.localStorage.getItem('quantity')
-        let amount=String(quantity/(allowed_price*nobitex_coin_list[j][1]))
+          let allowed_price = (this.state.tether)*0.9875*this.state[`binance_price${j}`]
+          let percentage = window.localStorage.getItem('percentage');
+          let quantity= this.state.balance_rls*0.01*percentage;
+          let amount=String(quantity/(allowed_price*nobitex_coin_list[j][1]))
 
-        let NobitexToken= window.localStorage.getItem('NobitexToken');
+          let NobitexToken= window.localStorage.getItem('NobitexToken');
 
-        let buy_data = {
-          type: "buy",
-          execution: "market",
-          srcCurrency: coin_list[j],
-          dstCurrency: "rls",
-          amount: amount,
+          let buy_data = {
+            type: "buy",
+            execution: "market",
+            srcCurrency: coin_list[j],
+            dstCurrency: "rls",
+            amount: amount,
+          }
+          let config = {
+            headers: { Authorization: `token ${NobitexToken}` }
+          };
+
+          await axios.post('https://corsproxyy.herokuapp.com/https://api.nobitex.ir/market/orders/add', buy_data,config)
+          .then((response) => {
+            console.log('buyyyyyyyy',response)
+            this.setState({buy_sum: this.state.buy_sum+1})
+            window.localStorage.setItem(coin_list[j],this.state[`nobitex_price_bid${j}`])
+          })
+          .catch((error) => {
+            console.log('erroppppppp',error)
+          })
         }
-    
-        let config = {
-          headers: { Authorization: `token ${NobitexToken}` }
-        };
-    
-        await axios.post('https://corsproxyy.herokuapp.com/https://api.nobitex.ir/market/orders/add', buy_data,config)
-        .then((response) => {
-          console.log('buyyyyyyyy',response)
-          window.localStorage.setItem(coin_list[j],this.state[`nobitex_price_bid${j}`])
-        })
-        .catch((error) => {
-          console.log('erroppppppp',error)
-        })
       }
 
-      if (window.localStorage.getItem(coin_list[j])){
-        console.log('had zarar')
-        let NobitexToken= window.localStorage.getItem('NobitexToken');
-        let allowed_price = (this.state.tether)*window.localStorage.getItem(coin_list[j])
-        let quantity= window.localStorage.getItem('quantity')
-        let amount=quantity/(allowed_price*nobitex_coin_list[j][1])
-        let live_price=this.state[`nobitex_price_ask${j}`]
-        await SL(coin_list[j],amount,NobitexToken,live_price)
+      if (this.state.SL_sum<20){
+
+        if (window.localStorage.getItem(coin_list[j])){
+          let NobitexToken= window.localStorage.getItem('NobitexToken');
+          
+          let percentage = window.localStorage.getItem('percentage');
+          let coin_balance_name= 'balance_'+ coin_list[j]
+          let amount=0
+            
+          if (this.state[coin_balance_name] != null){
+            
+            amount= this.state[coin_balance_name]*0.01*percentage
+          }
+
+          let live_price=this.state[`nobitex_price_ask${j}`]
+          await SL(coin_list[j],amount,NobitexToken,live_price)
+          .then(() => {
+            this.setState({SL_sum:this.state.SL_sum+1})
+          })
+          .catch((error) => {
+            console.error('errossssssss',error)
+          })
+        }
       }
 
       let sellPercent=window.localStorage.getItem('sellPercent')
 
-      if(Math.abs((this.state[`nobitex_price_ask${j}`]-this.state[`binance_price${j}`])/this.state[`binance_price${j}`]*100)>sellPercent && this.state[`binance_price${j}`] < this.state[`nobitex_price_ask${j}`]
-        && sellPercent){
+      if (this.state.sell_sum<20){
+
+        if (window.localStorage.getItem(coin_list[j])){
+
+          if((this.state[`nobitex_price_ask${j}`]-this.state[`binance_price${j}`])/this.state[`binance_price${j}`]*100 > sellPercent && sellPercent){
+            
+            console.log('sellllllllllll')
+            console.log("maxxxx",this.state[`nobitex_price_ask${j}`],this.state[`binance_price${j}`])
+            console.log("minnnn",this.state[`binance_price${j}`],binance_coin_list[j])
+            console.log("nobitex",this.state[`binance_price${j}`])
+            // console.log("nobitex",  this.state.binance_price,this.state.nobitex_volume)
+            var now = new Date();
+            console.log("taghir",(this.state[`nobitex_price_ask${j}`]-this.state[`binance_price${j}`])/this.state[`binance_price${j}`]*100,now) 
           
-        console.log('sellllllllllll')
-        console.log("maxxxx",this.state[`nobitex_price_ask${j}`],this.state[`binance_price${j}`])
-        console.log("minnnn",this.state[`binance_price${j}`],binance_coin_list[j])
-        console.log("nobitex",this.state[`binance_price${j}`])
-        // console.log("nobitex",  this.state.binance_price,this.state.nobitex_volume)
-        var now = new Date();
-        console.log("taghir",(this.state[`nobitex_price_ask${j}`]-this.state[`binance_price${j}`])/this.state[`binance_price${j}`]*100,now) 
-      
-        let allowed_price = (this.state.tether)*1.0125*this.state[`binance_price${j}`]
-        let quantity= window.localStorage.getItem('quantity')
-        let amount=(quantity/allowed_price*nobitex_coin_list[j][1])
+            let percentage= window.localStorage.getItem('percentage')
+            let coin_balance_name= 'balance_'+ coin_list[j]
+            let amount=0
+            
+            if (this.state[coin_balance_name] != null){
+              
+              amount= this.state[coin_balance_name]*0.01*percentage
 
-        let NobitexToken= window.localStorage.getItem('NobitexToken');
+            }
 
-        let sell_data = {
-          type: "sell",
-          execution: "market",
-          srcCurrency: coin_list[j],
-          dstCurrency: "rls",
-          amount: String(amount),
+            let NobitexToken= window.localStorage.getItem('NobitexToken');
+    
+            let sell_data = {
+              type: "sell",
+              execution: "market",
+              srcCurrency: coin_list[j],
+              dstCurrency: "rls",
+              amount: String(amount),
+            }
+        
+            let config = {
+              headers: { Authorization: `token ${NobitexToken}` }
+            };
+        
+            if (amount>1000000){
+              await axios.post('https://corsproxyy.herokuapp.com/https://api.nobitex.ir/market/orders/add', sell_data,config)
+              .then((response) => {
+                console.log('selllllllll',response)
+                this.setState({sell_sum:this.state.sell_sum+1})
+                audio.play(); 
+              })
+              .catch((error) => {
+                console.log('erroppppppp',error)
+              })
+            }
+    
+          }
+
         }
-    
-        let config = {
-          headers: { Authorization: `token ${NobitexToken}` }
-        };
-    
-        await axios.post('https://corsproxyy.herokuapp.com/https://api.nobitex.ir/market/orders/add', sell_data,config)
-        .then((response) => {
-          console.log('selllllllll',response)
-          audio.play(); 
-        })
-        .catch((error) => {
-          console.log('erroppppppp',error)
-        })
-
       }
-
-      // if(this.state[`nobitex_price${0}`]*(this.state.tether)<91650){
-      //   console.log(this.state[`nobitex_price${0}`]*(this.state.tether))
-      //   console.log("maxxxx",this.state[`max${j}`],this.state[`name_max${j}`])
-      //   console.log("minnnn",this.state[`min${j}`],this.state[`name_min${j}`])
-      //   console.log("nobitex",(this.state.tether)*this.state[`binance_price${j}`])
-      //   // console.log("nobitex",  this.state.binance_price,this.state.nobitex_volume)
-      //   var now = new Date();
-      //   console.log("taghir",(this.state[`max${j}`]-this.state[`min${j}`])/this.state[`min${j}`]*100,now) 
-      //   audio.play(); 
-      // }
       var sleep_time= 4000/(1.3*nobitex_coin_list.length)
       await sleep(sleep_time)
       
@@ -377,14 +370,14 @@ class List extends React.Component {
         </div>
 
         <div>
-          <p>مقدار خرید به ریال</p>
+          <p>درصد دارایی</p>
           <input
-            name="quantity"
-            placeholder="مقدار خرید به ریال"
+            name="percentage"
+            placeholder="درصد دارایی"
             onChange={(e) => this.handleChange(e)}
           />
           <button
-            name="quantity"
+            name="percentage"
             onClick={(e) => this.handleClickButton(e)}
           >send</button>
         </div>
