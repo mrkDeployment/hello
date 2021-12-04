@@ -14,7 +14,7 @@ export const Balance = async (token) => {
       var coins= response.data.wallets
       coins.forEach(function (coin) {
               
-        if ( coin.rialBalance > 1000000 ){
+        if ( coin.rialBalance > 100000 ){
           let currency= coin.currency
           let balance= coin.balance
           coin_list[currency]= balance

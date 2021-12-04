@@ -17,7 +17,7 @@ export const SL = async (symbol,amount,token,live_price) => {
 		let config = {
 			headers: { Authorization: `token ${token}` }
 		};
-		if (amount>1000000){
+		if (amount>0){
 			await axios.post('https://corsproxyy.herokuapp.com/https://api.nobitex.ir/market/orders/add', sell_data,config)
 			.then((response) => {
 			  console.log('Stophhhhhhhhhhhhhhhhhhh Loss',response)
@@ -28,3 +28,21 @@ export const SL = async (symbol,amount,token,live_price) => {
 		}
 	}	
 }
+
+
+export const Candle = async (symbol,interval='30m',limit='6') => {
+
+	let changed_percent=0
+
+	await axios.get("https://api.binance.com/api/v3/klines?interval="+interval+"&limit="+limit+"&symbol="+symbol, {} )
+	.then(response => {
+		console.log('ddddddd',response.data[0][1])
+		changed_percent= (response.data[limit-1][4]-response.data[0][1])/response.data[0][1]*100
+	})
+	.catch(error => {
+		console.error(error);
+		changed_percent=0;
+	});
+	return changed_percent
+}
+
